@@ -47,7 +47,7 @@ ollama pull bge-m3
 ### 1. 安装后端依赖
 
 ```powershell
-cd D:\embroidery_agent
+cd embroidery-agent
 pip install -e ".[api,retrieval,dev]"
 ```
 
