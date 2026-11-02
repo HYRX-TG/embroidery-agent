@@ -1,0 +1,146 @@
+{"query": "苏绣和湘绣有什么区别", "expected_sources": ["工艺", "苏绣", "湘绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "手工绣和机绣哪个好", "expected_sources": ["工艺", "手工机绣对比"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "打籽绣是什么针法", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "四大名绣分别是哪几个", "expected_sources": ["工艺"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "苏绣有什么特点", "expected_sources": ["工艺", "苏绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "湘绣最擅长绣什么", "expected_sources": ["工艺", "湘绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "粤绣有什么特色", "expected_sources": ["工艺", "粤绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "蜀绣擅长什么题材", "expected_sources": ["工艺", "蜀绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "半手工绣是什么意思", "expected_sources": ["工艺"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "机绣的优点和缺点", "expected_sources": ["工艺", "手工机绣对比"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "为什么手工绣比较贵", "expected_sources": ["工艺", "手工机绣对比", "常见疑问"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣的工序有哪些", "expected_sources": ["工艺", "定制流程"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "什么是劈丝", "expected_sources": ["工艺", "工具与材料"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "打版在刺绣里是什么意思", "expected_sources": ["工艺", "定制流程"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "双面绣是什么", "expected_sources": ["品类", "双面绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "单面绣和双面绣有什么区别", "expected_sources": ["品类", "双面绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣挂画一般有哪些题材", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣屏风适合放哪里", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "什么是定制肖像绣", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "绣花鞋荷包香囊是什么", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "旗袍上的刺绣有什么讲究", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣团扇有什么特点", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "中式家装适合挂什么绣品", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "婚嫁绣品一般绣什么题材", "expected_sources": ["品类", "婚庆绣品"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "平针是什么针法", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "齐针和套针有什么区别", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "戗针是做什么用的", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "乱针绣适合绣什么", "expected_sources": ["针法", "乱针绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "盘金绣是怎么绣的", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "锁链绣是什么", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "法国结绣法是什么", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "十字绣和刺绣是一回事吗", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "绣人物肖像用什么针法", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "初学者适合学什么针法", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣日常怎么保养", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "绣品发霉了怎么办", "expected_sources": ["保养", "污渍处理"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "手工绣品可以水洗吗", "expected_sources": ["保养", "污渍处理"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣应该怎么存放", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "为什么刺绣不能折叠存放", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "绣线松动了怎么办", "expected_sources": ["保养", "绣线与配色"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "装裱刺绣有什么讲究", "expected_sources": ["保养", "装裱"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣可以晒太阳吗", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "樟脑丸怎么放才安全", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "机绣品怎么清洗", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣最怕什么", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "牡丹纹样有什么寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "荷花象征什么", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "梅花纹样代表什么", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "兰花有什么寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "竹子纹样象征什么", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "菊花有什么吉祥寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "喜鹊纹样有什么含义", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "鸳鸯有什么寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "龙凤呈祥有什么寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "松鹤延年代表什么", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "锦鲤纹样有什么寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "麒麟纹样象征什么", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "蝙蝠纹样有什么讲究", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "梅兰竹菊有什么寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "年年有余是什么纹样", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "百鸟朝凤有什么寓意", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "送长辈选什么纹样好", "expected_sources": ["纹样寓意", "礼赠场景"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "婚庆送刺绣选什么题材", "expected_sources": ["纹样寓意", "婚庆绣品"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "乔迁送刺绣选什么纹样", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "商务送礼绣品选什么题材", "expected_sources": ["纹样寓意", "商务礼品"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "我想定制一幅牡丹挂画", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "想要一幅龙凤呈祥送人结婚", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "想绣一幅山水放办公室，120乘60的", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "帮我定制一个刺绣摆件", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "想给妈妈绣幅梅花，40乘60", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "能做一幅刺绣旗袍吗，绣兰花", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "想定制一对鸳鸯绣品", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "我要一幅很大的百鸟朝凤挂大堂", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "帮我绣一张照片做成挂画", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "你们能做企业刺绣礼品定制吗", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "想定做刺绣团扇送闺蜜", "expected_sources": [], "role": "customer", "intent": "custom_requirement", "behavior": "collect"}
+{"query": "一幅绣品多少钱", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "你们最便宜的多少钱", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "现在买有折扣吗", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "成本价多少", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "有现货吗", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "定制一幅要多久", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "什么时候能发货", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "运费怎么算", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "绣品可以退货吗", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "能不能便宜点", "expected_sources": [], "role": "customer", "intent": "order_service", "behavior": "transfer"}
+{"query": "这个绣品有色差，和图片不符", "expected_sources": [], "role": "customer", "intent": "complaint", "behavior": "transfer"}
+{"query": "你们的绣品质量太差了", "expected_sources": [], "role": "customer", "intent": "complaint", "behavior": "transfer"}
+{"query": "绣品褪色了，我很不满意", "expected_sources": [], "role": "customer", "intent": "complaint", "behavior": "transfer"}
+{"query": "东西太贵了，我要投诉", "expected_sources": [], "role": "customer", "intent": "complaint", "behavior": "transfer"}
+{"query": "你好", "expected_sources": [], "role": "customer", "intent": "small_talk", "behavior": "answer"}
+{"query": "在吗", "expected_sources": [], "role": "customer", "intent": "small_talk", "behavior": "answer"}
+{"query": "手工绣的工期标准是什么", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "报价单的成本构成有哪些", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "大宗订单的折扣规则是什么", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "手工绣工期怎么估算", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "半手工绣成本怎么算", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "复盘一下这段客户对话", "expected_sources": [], "role": "staff", "intent": "staff_analysis", "behavior": "staff"}
+{"query": "总结客户的预算和成交概率", "expected_sources": [], "role": "staff", "intent": "staff_analysis", "behavior": "staff"}
+{"query": "分析这段对话，提炼跟进建议", "expected_sources": [], "role": "staff", "intent": "staff_analysis", "behavior": "staff"}
+{"query": "写一条刺绣挂画的朋友圈文案", "expected_sources": [], "role": "staff", "intent": "staff_copywriting", "behavior": "staff"}
+{"query": "写一段手工绣和机绣区别的口播脚本", "expected_sources": ["手工机绣对比"], "role": "staff", "intent": "staff_copywriting", "behavior": "staff"}
+{"query": "帮我写个客户回访话术", "expected_sources": [], "role": "staff", "intent": "staff_copywriting", "behavior": "staff"}
+{"query": "客户压价时内部怎么处理", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "运费按什么规则核算", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "装裱成本怎么核算", "expected_sources": ["内部标准", "装裱"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "苏绣的特点是什么（员工口径）", "expected_sources": ["工艺", "苏绣"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "打籽绣立体感强是真的吗", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "送舅舅寿礼绣什么好", "expected_sources": ["纹样寓意", "礼赠场景"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "书房挂什么纹样的绣品", "expected_sources": ["纹样寓意"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "刺绣抱枕桌旗适合放哪", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣围巾披肩适合送人吗", "expected_sources": ["品类"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "真丝线和普通线有什么区别", "expected_sources": ["工艺", "绣线与配色"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣常用哪些面料", "expected_sources": ["工艺", "面料选择"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "为什么高档绣品用真丝线", "expected_sources": ["工艺", "绣线与配色"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣的历史有多久", "expected_sources": ["工艺", "刺绣历史"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "挂画怎么挂比较不伤绣品", "expected_sources": ["保养", "装裱"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "刺绣可以保存多久", "expected_sources": ["保养", "收藏与价值"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "局部脱线了怎么办", "expected_sources": ["保养", "污渍处理"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "送老师绣什么题材", "expected_sources": ["纹样寓意", "礼赠场景"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "宝宝满月送什么绣品", "expected_sources": ["礼赠场景", "生肖纹样"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "能绣外国油画风格的作品吗", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "客户要确切价格，内部怎么处理", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "批量订单怎么报价", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "加急订单怎么核算", "expected_sources": ["内部标准"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "客户投诉物流慢怎么处理", "expected_sources": [], "role": "staff", "intent": "knowledge", "behavior": "staff"}
+{"query": "顾绣和京绣是什么绣种", "expected_sources": ["地方绣种"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "潮绣的钉金绣是什么", "expected_sources": ["粤绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "双面全异绣难在哪", "expected_sources": ["双面绣"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "定制一幅绣品的流程是怎样的", "expected_sources": ["定制流程"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "设计稿确认后还能改吗", "expected_sources": ["定制流程"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "本命年送什么生肖绣品", "expected_sources": ["生肖纹样"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "龙纹适合什么场合", "expected_sources": ["生肖纹样"], "role": "customer", "intent": "pattern_meaning", "behavior": "answer"}
+{"query": "大堂挂山水绣品有什么讲究", "expected_sources": ["山水纹样"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "聚宝盆构图是什么意思", "expected_sources": ["山水纹样"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "怎么判断是不是手工绣", "expected_sources": ["收藏与价值", "手工机绣对比"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "绣品有收藏证书吗", "expected_sources": ["收藏与价值"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "绣品沾了茶渍怎么处理", "expected_sources": ["污渍处理"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "想学刺绣从哪里开始", "expected_sources": ["新手入门"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "企业定制50份伴手礼要注意什么", "expected_sources": ["商务礼品"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "打籽绣和盘金绣适合什么图案", "expected_sources": ["针法"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "绣品应该挂在什么样的环境", "expected_sources": ["保养"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "批量订单先打样吗", "expected_sources": ["商务礼品", "常见疑问"], "role": "customer", "intent": "knowledge", "behavior": "answer"}
+{"query": "员工培训话术要点", "expected_sources": ["客服话术SOP"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "客诉多久必须转店长", "expected_sources": ["客服话术SOP"], "role": "staff", "intent": "knowledge", "behavior": "answer"}
+{"query": "禁语清单有哪些", "expected_sources": ["客服话术SOP"], "role": "staff", "intent": "knowledge", "behavior": "answer"}

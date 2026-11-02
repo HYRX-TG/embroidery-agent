@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>设计与实现详解</title>
+<style>
+:root {
+  --ink: #2b2118; --ink-soft: #4a3b2c; --gold: #a8865a; --gold-light: #d9c6a3;
+  --gold-pale: #f3e9d6; --bg: #f7f2e9; --card: #fff; --muted: #8a7a66;
+  --code-bg: #f3ede1; --border: #e6dcc9;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Serif SC", Georgia, serif;
+  background: var(--bg); color: var(--ink); margin: 0;
+  line-height: 1.75; font-size: 15.5px;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 40px 32px 80px; }
+.doc {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 44px 52px; box-shadow: 0 4px 24px rgba(43,33,24,0.07);
+}
+.doc h1 {
+  font-size: 28px; color: var(--ink); border-bottom: 2px solid var(--gold);
+  padding-bottom: 14px; margin: 0 0 24px; letter-spacing: 1px;
+}
+.doc h2 {
+  font-size: 21px; color: var(--ink); margin: 36px 0 14px;
+  padding-left: 12px; border-left: 4px solid var(--gold); letter-spacing: 0.5px;
+}
+.doc h3 { font-size: 17px; color: var(--ink-soft); margin: 26px 0 10px; }
+.doc h4 { font-size: 15px; color: var(--muted); margin: 20px 0 8px; }
+.doc p { margin: 10px 0; }
+.doc a { color: var(--gold); text-decoration: none; border-bottom: 1px solid var(--gold-light); }
+.doc a:hover { border-bottom-color: var(--gold); }
+.doc ul, .doc ol { padding-left: 26px; margin: 10px 0; }
+.doc li { margin: 5px 0; }
+.doc code {
+  background: var(--code-bg); color: #8a5a2a; padding: 2px 6px;
+  border-radius: 5px; font-size: 13.5px; font-family: Consolas, Monaco, monospace;
+}
+.doc pre {
+  background: #2b2118; color: #e8dfd0; padding: 16px 20px; border-radius: 10px;
+  overflow-x: auto; font-size: 13.5px; line-height: 1.6;
+}
+.doc pre code { background: none; color: inherit; padding: 0; }
+.doc table {
+  border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px;
+}
+.doc th, .doc td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+.doc th { background: var(--gold-pale); color: var(--ink-soft); font-weight: 600; }
+.doc tr:nth-child(even) td { background: #fdfbf7; }
+.doc blockquote {
+  border-left: 4px solid var(--gold-light); background: #fdfbf7;
+  margin: 14px 0; padding: 10px 18px; color: var(--ink-soft);
+}
+.doc blockquote p { margin: 4px 0; }
+.doc hr { border: none; border-top: 1px dashed var(--border); margin: 30px 0; }
+.doc img { max-width: 100%; border-radius: 8px; }
+.toc { font-size: 14px; }
+@media (max-width: 700px) { .doc { padding: 26px 20px; } .wrap { padding: 20px 12px; } }
+</style>
+</head>
+<body>
+<div class="wrap"><article class="doc">
+<h1>知绣坊 · 设计与实现详解（从诉求出发，逐文件讲透）</h1>
+<blockquote>
+<p>配套《面试讲解.md》使用：那份是&quot;怎么讲&quot;，这份是&quot;为什么与怎么做的&quot;。
+结构：零、业务落地视角（应用工程师主叙事）→ 一、设计思路 → 二、数据流串联 → 三、逐文件详解 → 四、面试画图模板。</p>
+</blockquote>
+<hr />
+<h1>第零部分：业务落地视角——怎么把老板的一句话变成跑起来的系统（应用工程师主叙事）</h1>
+<h2>0.1 客户的原话 vs 真实需求（需求澄清是第一生产力）</h2>
+<p>客户的初始诉求往往是一句话：<strong>&quot;我想给我们刺绣店弄个 AI 客服。&quot;</strong></p>
+<p>直接照做就掉坑里了——&quot;AI 客服&quot;只是载体。应用工程师的第一步是<strong>蹲到门店去搞清楚：客服每天在干什么、哪里赔钱、哪里耗人</strong>。我做需求澄清后把&quot;做个 AI 客服&quot;翻译成了五条可验收的业务目标：</p>
+<table>
+<thead>
+<tr>
+<th>老板的模糊想法</th>
+<th>澄清后的真实诉求</th>
+<th>验收标准（和老板对齐的）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;客户问的问题新客服答不上&quot;</td>
+<td>行业知识要沉淀成标准答案</td>
+<td>新客服借助系统一次答对常见问题，回答带出处</td>
+</tr>
+<tr>
+<td>&quot;新人乱报价出过事&quot;</td>
+<td><strong>报价必须可控</strong></td>
+<td>系统永远不报价，价格 100% 人工核算，需求参数自动收集</td>
+</tr>
+<tr>
+<td>&quot;客户描述半天需求，记录还是乱的&quot;</td>
+<td>需求收集标准化</td>
+<td>每个定制咨询结束产出结构化表单+工单</td>
+</tr>
+<tr>
+<td>&quot;报价单和别家对不上，口径乱&quot;</td>
+<td>计算口径统一</td>
+<td>同样的参数任何人/任何时候算出同一个价</td>
+</tr>
+<tr>
+<td>&quot;我们的价格成本绝对不能上云&quot;</td>
+<td>数据不出内网</td>
+<td>全链路离线，审计无外网调用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>面试话术</strong>：&quot;客户说要做 AI 客服，我做的第一件事不是选模型，而是在门店蹲了两天记录客服的每类对话——最后发现 80% 的问题集中在四类，而且<strong>真正的痛点是报价失控和数据安全，不是'聊天'本身</strong>。需求的澄清质量决定了后面所有技术选型。&quot;</p>
+<h2>0.2 方案对客沟通：怎么让非技术老板听懂并签字</h2>
+<p>给老板的方案从来不是&quot;架构图&quot;，是<strong>三笔账 + 一个边界</strong>：</p>
+<p><strong>第一笔：数据安全账</strong>。在线 API 方案 = 客户资料/报价成本过第三方，泄露风险与合规问题；本地离线方案 = 一次投入硬件（现有 8G 显存电脑即可），数据物理不出店。→ 老板秒懂，这是签字的关键。</p>
+<p><strong>第二笔：成本账</strong>。对比表：SaaS 客服（月费+数据在他那）/ 云端 API 自建（按 token 月付+数据在他那）/ 本地自研（一次部署+电费，数据在自己这）。三方案同一张表，老板自己就会选第三列。</p>
+<p><strong>第三笔：人力账</strong>。系统接住的是&quot;重复咨询+需求记录&quot;，省的是客服培训和响应时间；报价/成交仍由人做——<strong>预期管理</strong>：不承诺&quot;替代客服&quot;，承诺&quot;新员工上手周期从两周到两天、客服响应零延迟、报价零事故&quot;。</p>
+<p><strong>一个边界（合同里写清楚的）</strong>：AI 不做最终决策——报价、工期承诺、售后裁定永远人工。这不是技术妥协，是<strong>业务风险设计</strong>：让系统承担&quot;确定性部分&quot;，人承担&quot;担责部分&quot;。</p>
+<h2>0.3 落地节奏：三阶段交付（每阶段都要有客户可感知的产出）</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>周期</th>
+<th>交付物</th>
+<th>验收方式（客户视角）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MVP 验证</strong></td>
+<td>1-2 周</td>
+<td>知识问答 + 不报价兜底 + 需求表单，店内电脑跑通</td>
+<td>老板拿 20 个真实客户问题现场试，答不上的记进&quot;知识缺口清单&quot;（本身就是交付物）</td>
+</tr>
+<tr>
+<td><strong>门店灰度</strong></td>
+<td>2-4 周</td>
+<td>+ 员工工作台 + 工单 + 意向分级；客服日常真实使用</td>
+<td>看三个数：重复问题人工介入率下降、需求表单完整率、有没有出报价事故</td>
+</tr>
+<tr>
+<td><strong>生产放量</strong></td>
+<td>1-2 月</td>
+<td>+ 微信公众号接入 + 服务自启/备份 + 数据飞轮</td>
+<td>粉丝消息全自动应答、断电重启自恢复、每周知识库更新一次</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么这个顺序</strong>：先在高风险低价值的问答域证明可靠性（出错了老板没损失），再碰工单这种业务数据，最后才对外接客——<strong>每一步的失败成本都被前一步兜住</strong>。</p>
+<h2>0.4 生产角度的关键设计（不是代码，是运营决策）</h2>
+<ol>
+<li><strong>人工兜底是产品功能，不是降级</strong>：转人工不是&quot;AI 不会了&quot;，而是设计出来的分流——系统把 80% 重复劳动接走，20% 高价值决策（报价/成交/客诉）留给人，还自动把上下文整理成工单递过去。</li>
+<li><strong>知识库的运营归属</strong>：交付时培训店员&quot;发现 AI 答错→改 md 文件→自动生效&quot;，让<strong>业务人员成为系统运营者</strong>——应用工程师交付的是&quot;会生长的系统&quot;，不是一次性项目。</li>
+<li><strong>数据飞轮 = 第二期收入</strong>：真实对话自动导出成微调候选，攒够 1000 条做 QLoRA——给老板的路线图里写明&quot;系统会越用越懂你的店&quot;，这是续费/二期故事的锚点。</li>
+<li><strong>成本底线</strong>：全程本地=运行成本≈电费；8G 显存消费级电脑就能跑——小商户的 IT 预算现实。</li>
+<li><strong>度量看板</strong>（给老板的周报）：意向工单数、高意向占比、知识缺口条数、人工介入率——全是系统自动出的数。</li>
+</ol>
+<h2>0.5 风险清单与应对（主动讲出来才显成熟）</h2>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>应对</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型幻觉报错价</td>
+<td>数值计算结构性剥离（纯函数），红线词硬拦截</td>
+</tr>
+<tr>
+<td>断电/重启丢会话</td>
+<td>SQLite(WAL) 持久化 + NSSM 自启 + 每日备份</td>
+</tr>
+<tr>
+<td>客户问倒知识库</td>
+<td>兜底转人工 + 缺口自动记录 → 运营闭环</td>
+</tr>
+<tr>
+<td>增长后单机瓶颈</td>
+<td>路线图预留：多实例 + 共享限流 + 换 vLLM（接口已解耦，迁移成本低）</td>
+</tr>
+<tr>
+<td>老板预期漂移</td>
+<td>三阶段验收标准签约时对齐，每阶段用&quot;客户视角验收&quot;复盘</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>第一部分：设计思路——先有问题，再有方案</h1>
+<h2>1.1 业务起点：刺绣门店的五个真实痛点</h2>
+<p>面试官问&quot;你解决什么问题&quot;，从这里讲起——<strong>每一个技术模块都对应一个具体痛点</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>门店痛点</th>
+<th>直接后果</th>
+<th>系统必须做到</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>老师傅经验在脑子里，客户问&quot;打籽绣和盘金绣区别&quot;&quot;牡丹什么寓意&quot;，新客服答不上</td>
+<td>客户觉得不专业，丢单</td>
+<td>把行业知识做成<strong>可检索的知识库</strong>，回答带出处</td>
+</tr>
+<tr>
+<td>2</td>
+<td>客户一问价格，新人就慌：报高了吓跑人，报低了亏本，报错了没法收场</td>
+<td>报价事故=真金白银损失</td>
+<td><strong>系统永远不报价</strong>：价格类问题固定话术转人工，只收集需求参数</td>
+</tr>
+<tr>
+<td>3</td>
+<td>定制需求沟通靠聊，聊完信息散在微信记录里，店长接手要重新问一遍</td>
+<td>客户重复描述，体验差，丢单</td>
+<td><strong>结构化需求收集</strong>：按固定顺序追问，产出标准表单+工单</td>
+</tr>
+<tr>
+<td>4</td>
+<td>报价/运费/交期依赖老师傅心算，口径不统一</td>
+<td>同一单不同人算出不同价</td>
+<td><strong>确定性计算器</strong>：价格表配置化，谁算结果都一样</td>
+</tr>
+<tr>
+<td>5</td>
+<td>报价、成本、客户资料是商业机密，绝不能上传到任何在线大模型</td>
+<td>数据外泄风险不可接受</td>
+<td><strong>全程本地离线</strong>：模型、检索、数据、日志都不出内网</td>
+</tr>
+</tbody>
+</table>
+<h2>1.2 五个痛点 → 五组技术需求 → 选型推导</h2>
+<p><strong>痛点 1（知识沉淀）→ 需要&quot;检索增强生成&quot;</strong></p>
+<ul>
+<li>候选：全靠微调（知识更新要重训，改一篇文档救不了）/ 纯 prompt 塞知识（上下文装不下 60+ 篇文档）/ <strong>RAG</strong>（改文档即生效、可溯源）✅</li>
+<li>追加选择：中文行业词多（打籽绣/盘金绣），纯向量检索对精确术语不如关键词 → <strong>BM25 + 向量双路召回 + RRF 融合</strong>；权限要求（内部库对客户不可见）→ <strong>召回前过滤</strong>而不是召回后靠 prompt 约束。</li>
+</ul>
+<p><strong>痛点 2（不报价红线）→ 需要&quot;意图识别 + 兜底路由&quot;</strong></p>
+<ul>
+<li>不能指望 LLM 自己&quot;记住别报价&quot;（prompt 是软约束）→ 三道防线：<strong>关键词拦截</strong>（价格/工期/库存词命中→根本不进模型，直接返回转人工话术+建工单）→ <strong>检索层权限过滤</strong>（客户召回不到含价格的内部文档）→ <strong>system prompt 红线</strong>（最后一层软约束）。</li>
+</ul>
+<p><strong>痛点 3（需求收集）→ 需要&quot;对话状态机 + 结构化抽取&quot;</strong></p>
+<ul>
+<li>纯 prompt 让模型&quot;自己多轮收集&quot;不可控（可能一次问三个问题、可能漏字段）→ <strong>显式状态机</strong>：<code>collecting</code> 标志 + 固定追问顺序（主题→尺寸→工艺→用途→预算→交付）+ 每轮只问一个；客户回答用 <strong>LLM JSON mode 抽取</strong>进 <code>RequirementForm</code> 数据类，<strong>合并策略只填空字段不覆盖</strong>（防止后一轮抽取把已确认的字段冲掉）。</li>
+</ul>
+<p><strong>痛点 4（计算口径）→ 需要&quot;确定性工具 + LLM 解耦&quot;</strong></p>
+<ul>
+<li>这是整个项目最核心的架构决策：<strong>LLM 是概率模型，不能让它算钱</strong>。</li>
+<li>方案：<code>business_tools.py</code> 纯函数（运费/报价/排产）+ 价格表外置 <code>configs/logistics.json</code>、<code>production.json</code>；LLM 只做两件事——<strong>提参数</strong>（JSON mode，且先走正则快路径：&quot;60乘80/手工绣/3幅&quot;这种直接命中，零模型调用）和<strong>解释结果</strong>（把计算输出翻译成话术）。</li>
+<li>效果：模型说出的价格=系统算出的价格，<strong>数值幻觉被结构性消灭</strong>。</li>
+</ul>
+<p><strong>痛点 5（离线）→ 需要&quot;本地模型栈&quot;</strong></p>
+<ul>
+<li>推理：<strong>Ollama</strong>（Windows 原生、OpenAI 兼容接口）；Embedding：<strong>bge-m3</strong>（Ollama 端）；向量库：<strong>FAISS</strong>（嵌入式，不用起 Milvus 服务）；数据库：<strong>SQLite</strong>（WAL 模式）。</li>
+<li>关键架构约束：<strong>业务代码只面向 OpenAI 兼容接口编程</strong>——换模型/换推理引擎（7B→9B→微调版→vLLM）改一行配置，业务零改动。这是&quot;应用层与推理层解耦&quot;。</li>
+</ul>
+<h2>1.3 硬约束如何收窄选型</h2>
+<ul>
+<li><strong>8G 显存</strong>：7B/9B Q4 量化（4.7~6.6GB），embedding 放 CPU；纯 CPU 降级 3B。</li>
+<li><strong>零 API 费用</strong>：不接任何云端 LLM——也顺带满足了痛点 5。</li>
+<li><strong>单机单进程</strong>：限流用进程内滑动窗口（多实例才需要 Redis）；会话/工单 SQLite 够用。</li>
+<li><strong>Windows 门店电脑</strong>：start.ps1 一键启动、NSSM 注册服务、PowerShell 运维脚本。</li>
+</ul>
+<h2>1.4 诉求 → 模块映射总表（背这张表）</h2>
+<table>
+<thead>
+<tr>
+<th>诉求</th>
+<th>对应模块</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>知识沉淀+可溯源</td>
+<td><code>data/knowledge</code> + <code>retrieval/</code> + <code>generation/answer.py</code>（回答带[编号]来源）</td>
+</tr>
+<tr>
+<td>不报价红线</td>
+<td><code>nlp/guard.py</code> + <code>customer.py:PRICE_SPECIAL_TERMS</code> + 权限过滤 + prompts 红线</td>
+</tr>
+<tr>
+<td>需求收集</td>
+<td><code>core/schema.py:RequirementForm</code> + <code>customer.py</code> 状态机 + <code>answer.py:extract_requirement_form</code></td>
+</tr>
+<tr>
+<td>计算口径统一</td>
+<td><code>agent/business_tools.py</code> + <code>configs/logistics.json</code> / <code>production.json</code></td>
+</tr>
+<tr>
+<td>全程离线</td>
+<td>Ollama + bge-m3 + FAISS + SQLite + <code>generation/llm.py</code>（唯一出网口=本机 11434）</td>
+</tr>
+<tr>
+<td>员工生产力</td>
+<td><code>agent/team.py + experts.py</code>（6 专家）+ <code>prompts/team/</code> 热更新</td>
+</tr>
+<tr>
+<td>知识库可替换</td>
+<td><code>agent/rag.py</code> 协议 + <code>team_rag.py</code> 向量实现 + <code>data/team_kb/</code> 挂载点</td>
+</tr>
+<tr>
+<td>多渠道接入</td>
+<td><code>channels/</code>（hub + wechat 适配器 + openid 绑定 + 幂等）</td>
+</tr>
+<tr>
+<td>质量回归</td>
+<td><code>data/golden_test.jsonl</code> + <code>scripts/evaluate.py</code> + <code>tests/</code> + CI</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>第二部分：一条消息的一生（把所有文件串起来）</h1>
+<h2>链路 A：客户问&quot;我想定制一幅绣品送长辈&quot;</h2>
+<ol>
+<li><strong>前端</strong> <code>web/app.js</code>：Enter 键发送 → <code>fetch POST /api/v1/customer/chat</code>（带 localStorage 里的 session_id）。</li>
+<li><strong>API</strong> <code>api/server.py:customer_chat</code>：IP 限流检查（<code>api/rate_limit.py</code> 滑动窗口）→ session_id 归一化（非 ASCII 自动换新，防 HTTP header 编码炸）→ 交给 <code>CustomerAgent</code>。</li>
+<li><strong>Agent</strong> <code>agent/customer.py:process</code>：
+<ul>
+<li>注入检测（<code>nlp/guard.py</code>）：命中&quot;忽略指令/套底价&quot;→ 礼貌拒绝，流程终止；</li>
+<li>价格词拦截（<code>PRICE_SPECIAL_TERMS</code>）：本例没有；</li>
+<li>意图分类（<code>nlp/intent.py</code>）：命中&quot;定制/送&quot;触发词 → <code>CUSTOM_REQUIREMENT</code>；</li>
+<li>进入收集模式 <code>collecting=True</code>：本轮缺&quot;图案主题&quot; → 按追问顺序取第一问，SSE 流式返回。</li>
+</ul>
+</li>
+<li><strong>客户继续答</strong>&quot;牡丹题材&quot;：classification → <code>collecting</code> 分支 → <code>generation/answer.py:extract_requirement_form</code> 用 LLM JSON mode 从对话抽字段，合并进表单 → 仍缺字段 → 问下一个 → …… 六要素齐 → 输出【表单+方案建议+待人工确认】，<code>agent/ticket.py</code> 写 SQLite 工单，<code>agent/leads.py</code> 规则打意向分（六要素齐=高）。</li>
+<li><strong>知识类问题</strong>（&quot;苏绣和湘绣的区别&quot;）走另一分支：<code>retrieval/pipeline.py:HybridRetriever.search</code> → 角色过滤（客户只见 public）→ BM25（<code>retrieval/bm25.py</code>，jieba 分词）+ FAISS（<code>retrieval/vector.py</code>，bge-m3）双路 → RRF 融合 → 可选 rerank → <code>generation/answer.py:customer_messages</code> 拼带编号来源的上下文 → <code>llm.py</code> 流式调 Ollama → 边生成边 SSE 推给前端逐字显示 → 全文落 SQLite 会话表。</li>
+</ol>
+<h2>链路 B：员工在团队工作台问&quot;60×80 手工绣挂画 3 幅报价多少&quot;</h2>
+<ol>
+<li><code>web/team.html</code> → <code>POST /api/v1/team/chat</code>（带 <code>X-Staff-Access</code> 口令头）→ <code>server.py</code> 过 <code>require_staff</code>（hmac 常量时间比较）。</li>
+<li><code>agent/team.py:TeamOrchestrator.route</code>：<strong>关键词正则先走</strong>——&quot;报价&quot;命中 <code>quotation</code> 专家，零延迟；只有知识问句才走 LLM JSON 路由（带 LRU 缓存）。</li>
+<li><code>agent/experts.py:ToolExpert</code> 三段式：
+<ul>
+<li><strong>提参</strong>：正则快路径直接命中&quot;60×80/手工绣/3&quot;→ 不调模型；缺参才 LLM JSON 提取（带历史，支持&quot;那只要 5 幅呢&quot;省略句）；仍缺 → 返回中文补参提示，不瞎猜；</li>
+<li><strong>核算</strong>：<code>agent/business_tools.py:order_quote</code> 纯函数按 <code>configs/production.json</code> 价格表计算；</li>
+<li><strong>解释</strong>：<code>experts.py:build_messages</code> 把工具结果注入 messages → LLM 流式解释（团队 RAG 的 <code>team_rag.py</code> 还会检索 <code>data/team_kb</code> 注入行业知识）。</li>
+</ul>
+</li>
+<li>专家提示词来自 <code>prompts/team/quotation.md</code>（<code>prompt_store.py</code> mtime 热加载，改完即生效不重启）。</li>
+</ol>
+<h2>链路 C：微信公众号客户发消息</h2>
+<ol>
+<li>平台回调 <code>GET/POST /api/v1/channels/wechat/webhook</code> → <code>channels/hub.py:ChannelHub.handle_webhook</code>。</li>
+<li><code>channels/wechat.py:WeChatAdapter</code>：GET 验签（token+sha1）回 echostr；POST 解析 XML 为 <code>IncomingMessage</code>。</li>
+<li><code>channels/base.py:ChannelStore</code>：openid → <code>get_or_create_session</code>（同一粉丝永远同一会话，跨设备不丢上下文）；消息 ID 幂等去重（微信会重推）。</li>
+<li>复用链路 A 的 <code>CustomerAgent</code> 生成回答 → 微信 5 秒被动回复限制 → <strong>异步</strong>：先回空串，答案进 <code>channel_pending_replies</code> 队列，凭 app_id/secret 调客服消息接口推送；未配凭证=本地模式（回复存表，供联调轮询）。</li>
+</ol>
+<hr />
+<h1>第三部分：逐文件详解</h1>
+<blockquote>
+<p>格式：<strong>是什么</strong> → <strong>怎么实现</strong> → <strong>作用</strong> → <strong>上下游关联</strong>。</p>
+</blockquote>
+<h2>3.0 仓库根</h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>包声明 + 三组可选依赖 <code>[api]</code>(FastAPI/uvicorn/pydantic-settings/httpx)、<code>[retrieval]</code>(numpy/faiss/sentence-transformers/jieba)、<code>[dev]</code>(pytest)；pytest <code>pythonpath=[&quot;src&quot;]</code></td>
+</tr>
+<tr>
+<td><code>requirements-lock.txt</code></td>
+<td>Windows 开发机依赖快照（版本锁死，保证复现）</td>
+</tr>
+<tr>
+<td><code>Dockerfile</code></td>
+<td>python:3.12-slim + 装依赖 + 拷代码数据；模型通过环境变量指向宿主机 Ollama（host.docker.internal）</td>
+</tr>
+<tr>
+<td><code>start.ps1</code></td>
+<td>一键前台启动：查 Ollama→缺索引自动构建→起 uvicorn</td>
+</tr>
+<tr>
+<td><code>install.ps1</code></td>
+<td>门店装机：查环境→装依赖→建索引→NSSM 注册开机自启→schtasks 注册每日备份</td>
+</tr>
+<tr>
+<td><code>backup.ps1</code></td>
+<td>备份 SQLite/配置/知识库，保留最近 14 份</td>
+</tr>
+<tr>
+<td><code>LICENSE</code>(MIT) / <code>.gitignore</code> / <code>README.md</code></td>
+<td>开源三件套</td>
+</tr>
+<tr>
+<td><code>.github/workflows/ci.yml</code></td>
+<td>CI：单元测试+数据校验+模块导入检查，<strong>全部不依赖本地模型</strong>，推 GitHub 即跑</td>
+</tr>
+</tbody>
+</table>
+<h2>3.1 configs/（配置层）</h2>
+<ul>
+<li><strong><code>default.json</code></strong>——全局唯一主配置：<code>llm</code>（Ollama 地址/模型名）、<code>rerank</code>（开关，A/B 实测默认关）、<code>retrieval</code>（recall_k/top_k/双路开关）、<code>kb</code>（三库路径+切块参数）、<code>staff</code>（口令哈希）、<code>rate_limit</code>（限流阈值）、<code>channels</code>（微信）、<code>team</code>（启用的专家、rag_provider、路由温度）。<strong>作用</strong>：改模型/改参数不改代码。<strong>关联</strong>：被 <code>core/settings.py</code> 加载，<code>agent/router.py</code> 消费。</li>
+<li><strong><code>logistics.json</code></strong>——运费价格表（分区/首续重/抛比系数）。<strong>运营可直接编辑</strong>，<code>business_tools.shipping_quote</code> 读取。</li>
+<li><strong><code>production.json</code></strong>——工艺单价/工序产能表。<code>business_tools.order_quote / schedule_estimate</code> 读取。</li>
+</ul>
+<h2>3.2 core/（模型与配置的代码化）</h2>
+<ul>
+<li><strong><code>schema.py</code></strong>——全项目的数据骨架：<code>Role</code>（customer/staff）、<code>Intent</code>（9 种意图枚举）、<code>TicketStatus</code>（工单状态机）、<code>RequirementForm</code>（定制六要素+辅助字段，<code>missing_fields()</code> 返回缺失项中文标签供追问）、<code>Ticket</code>、<code>KnowledgeChunk</code>（含 <code>visibility</code> 字段——权限的载体）、<code>Message</code>。<strong>上下游</strong>：被所有层 import；<code>visibility</code> 决定检索层怎么过滤。</li>
+<li><strong><code>settings.py</code></strong>——<code>Settings(BaseSettings)</code> 支持 .env 覆盖；<code>load_config()</code> 读 default.json；<code>get_settings()</code> lru_cache 单例。<strong>作用</strong>：环境变量优先于文件，生产注入口令/模型地址不落盘。</li>
+</ul>
+<h2>3.3 nlp/（轻量语言理解：规则为主）</h2>
+<ul>
+<li><strong><code>intent.py</code></strong>——<code>IntentClassifier</code>：关键词信号表（定制/尺寸/寓意/订单/投诉/员工侧/问候）→ <code>IntentResult</code>。<strong>关键设计</strong>：兜底<strong>必须</strong>返回 KNOWLEDGE 走模型（曾踩坑：兜底 SMALL_TALK 导致大量问题被硬编码话术吞掉）。<strong>上下游</strong>：customer/staff/team 三处入口的第一道分流。</li>
+<li><strong><code>ner.py</code></strong>——<code>CraftNER</code>：5 类行业词典（针法/品类/纹样/工艺流程/材料）正则匹配。<strong>作用</strong>：给意图分类提供&quot;是否行业问题&quot;的信号；将来接图谱数据扩充词典即可。</li>
+<li><strong><code>guard.py</code></strong>——提示词注入防御：9 条正则模式（忽略指令/越狱/套系统提示/套底价…），命中→国风拒绝话术+WARNING 审计日志。<strong>关联</strong>：customer.py 和 staff.py 入口第一步。</li>
+</ul>
+<h2>3.4 retrieval/（混合检索）</h2>
+<ul>
+<li><strong><code>bm25.py</code></strong>——手写 BM25（jieba 分词、k1/b 标准参数）。<strong>为什么自己写</strong>：零重型依赖、可控可测。<strong>强项</strong>：专有名词精确命中。</li>
+<li><strong><code>vector.py</code></strong>——<code>EmbeddingClient</code>（OpenAI 兼容 /v1/embeddings，先试 OpenAI 格式再兜底 Ollama 原生 /api/embed）+ <code>FaissVectorStore</code>（IndexFlatIP + L2 归一化=余弦；save/load 持久化）。<strong>关联</strong>：embedding 模型名来自配置，换模型重建索引即可。</li>
+<li><strong><code>reranker.py</code></strong>——CrossEncoder 精排，<strong>离线优先</strong>：本地 HF 缓存没有模型就直接跳过（避免联网卡死）。A/B 实测对小库负收益，默认关。</li>
+<li><strong><code>pipeline.py</code></strong>——核心两件套：
+<ul>
+<li><code>KnowledgeBase</code>：加载/切块（段落优先 300 字）/建 BM25+FAISS/<strong>manifest 自愈</strong>（记录每文件 mtime+size+模型名，变更自动重建）；</li>
+<li><code>HybridRetriever.search(query, role)</code>：<strong>先按角色过滤候选集</strong>（public/internal）→ 双路召回 → RRF → 可选精排 → top_k。<strong>上下游</strong>：customer/staff/team_rag 全走它或它的同类实现。</li>
+</ul>
+</li>
+</ul>
+<h2>3.5 agent/（业务大脑）</h2>
+<ul>
+<li><strong><code>router.py</code></strong>——<code>AgentRuntime</code>：组装 embedding/llm/kb/retriever/reranker/tickets/customer/staff 的<strong>单一入口</strong>，<code>create_app</code> 只问它要依赖。<strong>作用</strong>：依赖注入根，测试时可注入假 LLM。</li>
+<li><strong><code>customer.py</code></strong>——C 端核心：<code>CustomerSession</code>（消息/表单/collecting/工单引用，SQLite 持久化 WAL）+ <code>CustomerAgent.process</code>（拦截注入→拦截价格词→collecting 分支[跑题放行/退出词]→意图分流→<code>_stream_knowledge</code>[真实回答落库]→<code>_handle_requirement</code>[追问循环/表单完成建工单]）。<strong>上下游</strong>：web、channels 微信两路都汇到这。</li>
+<li><strong><code>staff.py</code></strong>——B 端单会话版（行业答疑/复盘/文案），检索含 internal 库。</li>
+<li><strong><code>ticket.py</code></strong>——<code>TicketStore</code>：SQLite 工单 CRUD（create/list/update_status/update_note）。<strong>作用</strong>：人工跟进的唯一凭据。</li>
+<li><strong><code>leads.py</code></strong>——<code>LeadScorer</code> 纯规则意向分级：六要素齐全或出现成交信号=高。<strong>设计点</strong>：不耗 LLM、结果可审计。</li>
+<li><strong><code>team.py</code></strong>——<code>TeamOrchestrator</code>：专家注册表 + 两级路由（<code>_route_by_keywords</code> 正则强信号零延迟 → <code>_route_by_llm</code> JSON 路由带 LRU 缓存 → 客服兜底）+ 团队会话 SQLite。<strong>作用</strong>：多 Agent 的调度中枢。</li>
+<li><strong><code>experts.py</code></strong>——<code>BaseExpert</code>（纯知识型：RAG 检索+流式回答）/ <code>ToolExpert</code>（工具型三段式：正则提参→缺参 LLM JSON 提参[带历史]→纯函数核算→LLM 解释）+ 6 个 <code>ExpertSpec</code> 注册。<strong>上下游</strong>：被 team.py 派发；调 business_tools 与 team_rag。</li>
+<li><strong><code>business_tools.py</code></strong>——确定性计算器：<code>shipping_quote</code>（重量+体积重抛比+分区价格表）、<code>order_quote</code>（面积×工艺单价×数量+装裱）、<code>schedule_estimate</code>（工序串并行+产能）、<code>ticket_stats</code>（只读统计）。<strong>设计点</strong>：LLM 禁止算术，工具只吃标量参数（<code>_num</code> 严格类型校验）。</li>
+<li><strong><code>rag.py</code></strong>——<strong>外挂知识库协议</strong>：<code>Doc</code> 数据类 + <code>RAGProvider</code> Protocol（5 行）+ <code>NullRAGProvider</code>（空实现）+ <code>load_rag_provider(dotted_path)</code>（配置字符串动态加载实现类）。<strong>作用</strong>：知识来源与 Agent 解耦的契约。</li>
+<li><strong><code>team_rag.py</code></strong>——协议的向量实现：扫 <code>team_kb_dirs</code> → 切块 → bge-m3 → FAISS → <code>retrieve()</code>；manifest 缓存（源变更自动重建）；<code>stats()</code> 供状态端点观测。<strong>关联</strong>：配置 <code>team.rag_provider</code> 指向它，换私有库=新写一个类。</li>
+<li><strong><code>prompt_store.py</code></strong>——<code>prompts/team/*.md</code> 热加载（mtime 缓存，<code>## system</code> 分节）。<strong>作用</strong>：话术运营不改代码。</li>
+<li><strong><code>prompts_team.py</code></strong>——团队内置默认提示词常量（外置文件缺失时回退）。</li>
+</ul>
+<h2>3.6 generation/（模型接入与生成）</h2>
+<ul>
+<li><strong><code>llm.py</code></strong>——<code>LLMClient</code>：OpenAI 兼容 chat/embeddings、流式 SSE 解析、<strong><code>is_ready()</code> 校验目标模型在模型列表里</strong>（曾修&quot;假在线&quot;bug）、<code>missing_reason()</code> 诊断。<strong>作用</strong>：全项目唯一出网点=本机 Ollama。</li>
+<li><strong><code>prompts.py</code></strong>——C/B 两套 system prompt（含&quot;安全防线最高优先级&quot;条款）+ 表单抽取 JSON 模板 + 三段固定话术（转人工/投诉/问候）。</li>
+<li><strong><code>answer.py</code></strong>——生成装配线：<code>build_rag_context</code>（带[编号]来源的上下文）、<code>customer_messages</code>/<code>staff_messages</code>（system+历史+RAG 块+当前问）、<code>extract_requirement_form</code>（JSON mode+<strong>只填空字段合并策略</strong>）、<code>stream_grounded_answer</code>（三级降级：LLM 挂→抽取式引用，全挂→固定话术，每级 WARNING 日志）。</li>
+</ul>
+<h2>3.7 api/（服务层）</h2>
+<ul>
+<li><strong><code>server.py</code></strong>——所有 HTTP 端点：健康/状态/检索调试/客户 chat+history/员工 chat/工单/团队 chat+agents+status/三个确定性工具直调/渠道 webhook/指标。横切：<code>require_staff</code>（env&gt;明文&gt;sha256 三档+hmac 常量时间比较）、<code>check_rate</code> 限流、<code>_setup_log_file</code> 落盘日志、SSE <code>sse()</code>/<code>chunk_stream()</code>。</li>
+<li><strong><code>rate_limit.py</code></strong>——<code>SlidingWindowLimiter</code>：进程内滑动窗口（线程安全 deque+Lock），按 (桶,IP) 限流，429+Retry-After。</li>
+</ul>
+<h2>3.8 channels/（多渠道接入）</h2>
+<ul>
+<li><strong><code>base.py</code></strong>——<code>ChannelAdapter</code> 抽象（verify/parse_incoming/push_reply）+ <code>ChannelStore</code>（SQLite：openid↔session 绑定、消息 ID 幂等、待推送回复队列）。</li>
+<li><strong><code>hub.py</code></strong>——<code>ChannelHub</code>：注册各渠道、统一 webhook 分发、异步应答（规避微信 5 秒限制）。</li>
+<li><strong><code>wechat.py</code></strong>——<code>WeChatAdapter</code>：token+sha1 验签、XML 解析、客服消息推送（access_token 缓存）。<strong>设计点</strong>：未配凭证=本地模式，联调零门槛。</li>
+</ul>
+<h2>3.9 web/（前端，原生无构建）</h2>
+<ul>
+<li><strong><code>index.html</code></strong>——客户页：欢迎卡片+快捷提问、聊天区、员工入口。</li>
+<li><strong><code>app.js</code></strong>——SSE 逐字渲染、Enter 发送/Shift+Enter 换行、角色切换视图隔离（客户根本不渲染侧栏）、员工口令 localStorage、工单轮询、DOM textContent 渲染防 XSS。</li>
+<li><strong><code>team.html</code></strong>——团队工作台（专家徽标+选择+对话）。</li>
+<li><strong><code>style.css</code></strong>——国风主题（宣纸米+鎏金）。</li>
+</ul>
+<h2>3.10 data/（数据层）</h2>
+<ul>
+<li><strong><code>knowledge/</code></strong>（25 篇公开）+ <strong><code>internal/</code></strong>（2 篇内部）——主知识库：文件名=分类，段落切块，visibility 由目录决定。</li>
+<li><strong><code>team_kb/</code></strong>——团队外挂挂载点（NCIFD 698 条 + 纹样民俗百科 + 经营常识 + SOURCES.md 溯源声明）。</li>
+<li><strong><code>golden_test.jsonl</code></strong>——146 条黄金集，三维度标注：expected_sources（检索）/intent（意图）/behavior（行为：answer/collect/transfer/staff）。</li>
+<li><strong><code>finetune/</code></strong>——四类原始数据（qa/dialogue/staff/form）+ 校验脚本规格（docs/finetune_data_spec.md）。</li>
+<li><strong><code>embroidery.db</code></strong>（gitignore）——运行时唯一数据库：会话/消息/工单/团队会话/渠道绑定。</li>
+</ul>
+<h2>3.11 scripts/（运维与数据工具，12 个）</h2>
+<table>
+<thead>
+<tr>
+<th>脚本</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_kb.py</code></td>
+<td>手动建主知识库索引（平时自动，演示用）</td>
+</tr>
+<tr>
+<td><code>ensure_kb.py</code></td>
+<td>索引存在性检查/确保构建</td>
+</tr>
+<tr>
+<td><code>evaluate.py</code></td>
+<td>三合一评测：Hit@K/MRR + 意图准确率 + 行为合规（分角色跑）</td>
+</tr>
+<tr>
+<td><code>validate_finetune.py</code></td>
+<td>四类微调数据格式校验（--export 连锁导出）</td>
+</tr>
+<tr>
+<td><code>generate_finetune.py</code></td>
+<td>问法变体扩充（数据增强）</td>
+</tr>
+<tr>
+<td><code>export_finetune.py</code></td>
+<td>合成 LlamaFactory alpaca 训练集</td>
+</tr>
+<tr>
+<td><code>export_conversations.py</code></td>
+<td><strong>数据飞轮</strong>：真实对话→候选集（过滤固定话术，reviewed 标记）</td>
+</tr>
+<tr>
+<td><code>fetch_team_kb.py</code></td>
+<td>从 NCIFD 仓库拉取并关键词过滤进 team_kb</td>
+</tr>
+<tr>
+<td><code>hash_passcode.py</code></td>
+<td>口令→SHA-256（生成配置哈希）</td>
+</tr>
+<tr>
+<td><code>smoke_team.py</code></td>
+<td>团队端到端冒烟（含鉴权回归）</td>
+</tr>
+<tr>
+<td><code>smoke_channels.py</code></td>
+<td>模拟微信回调全链路冒烟</td>
+</tr>
+<tr>
+<td><code>render_docs.py</code></td>
+<td>Markdown→带主题 HTML（离线看文档）</td>
+</tr>
+</tbody>
+</table>
+<h2>3.12 tests/（46 项，全部离线可跑）</h2>
+<p><code>test_intent</code>（意图回归）/<code>test_bm25</code>/<code>test_guard</code>（注入）/<code>test_rate_limit</code>/<code>test_ticket</code>/<code>test_session</code>（会话落库）/<code>test_leads</code>/<code>test_channels</code>（验签/XML/幂等/绑定）。<strong>设计点</strong>：CI 上没有 Ollama 也能全绿——模型相关逻辑全靠依赖注入假件。</p>
+<hr />
+<h1>第四部分：面试画图与讲法模板</h1>
+<p><strong>画图顺序</strong>（3 分钟白板）：</p>
+<ol>
+<li>先画左侧&quot;痛点&quot;五个框（知识/报价红线/需求散/口径乱/离线）；</li>
+<li>再画右侧架构五层，<strong>每画一层就指回它解决的痛点</strong>；</li>
+<li>最后圈两个&quot;得意细节&quot;：LLM 不算数（确定性工具）、权限在检索层不在 prompt。</li>
+</ol>
+<p><strong>一句话收尾</strong>：</p>
+<blockquote>
+<p>&quot;这个项目让我真正理解了 Agent 工程的核心不是调模型，而是<strong>给概率系统建立确定性边界</strong>——数值、权限、兜底都不交给模型自由发挥，模型只做它擅长的理解与表达。&quot;</p>
+</blockquote>
+
+</article></div>
+</body>
+</html>

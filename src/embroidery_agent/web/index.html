@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>知绣坊 · 刺绣智能顾问</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">绣</span>
+      <span class="brand-text">
+        <strong>知绣坊</strong>
+        <small>刺绣智能顾问</small>
+      </span>
+    </div>
+    <nav class="role-switch">
+      <button id="btn-customer" class="role-btn active">客户咨询</button>
+      <button id="btn-staff" class="role-btn">员工工作台</button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <!-- 聊天面板 -->
+    <section class="chat-panel">
+      <div id="status-bar" class="status-bar">
+        <span class="dot"></span><span id="status-text">正在检查本地服务…</span>
+      </div>
+      <div id="messages" class="messages">
+        <div class="welcome" id="welcome-card">
+          <div class="welcome-mark">绣</div>
+          <h2>您好，欢迎来到知绣坊</h2>
+          <p>一针一线，绣尽山河岁月。无论是工艺咨询、纹样寓意，还是定制一幅专属绣品，都可以和我聊聊~</p>
+          <div class="welcome-tags">
+            <span>苏绣与湘绣的区别</span>
+            <span>打籽绣是什么针法</span>
+            <span>绣品怎么保养</span>
+            <span>想定制绣品送长辈</span>
+          </div>
+        </div>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <textarea id="input" placeholder="请输入您的问题，例如：苏绣和湘绣有什么区别？或：想定制一幅绣品送长辈…" rows="1"></textarea>
+        <button type="submit" id="send-btn">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          <span>发送</span>
+        </button>
+      </form>
+      <p class="hint" id="page-hint">本地离线运行 · 行业知识仅供参考，不包含门店价格/工期承诺</p>
+    </section>
+
+    <!-- 侧栏：仅员工工作台显示（内部信息不对客户开放） -->
+    <aside class="side-panel staff-only" id="side-panel" hidden>
+      <div class="side-card">
+        <h3><span class="side-icon">◆</span> 系统状态</h3>
+        <ul class="status-list" id="sys-status">
+          <li class="loading">加载中…</li>
+        </ul>
+      </div>
+
+      <div class="side-card">
+        <h3><span class="side-icon">◆</span> 定制需求追问顺序</h3>
+        <ol class="flow-list">
+          <li>图案主题</li>
+          <li>尺寸规格</li>
+          <li>工艺类型（手工/半手工/机绣）</li>
+          <li>使用用途</li>
+          <li>预算范围</li>
+          <li>交付时限</li>
+          <li>特殊要求</li>
+        </ol>
+      </div>
+
+      <div class="side-card">
+        <h3><span class="side-icon">◆</span> 工单 · 需人工跟进</h3>
+        <div id="tickets">
+          <div class="loading">加载中…</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

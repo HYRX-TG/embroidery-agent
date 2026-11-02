@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装依赖（最小集，避免 CI 下载 torch 全家桶）
+        run: |
+          pip install --upgrade pip
+          pip install -e . --no-deps
+          pip install fastapi uvicorn pydantic-settings httpx numpy faiss-cpu jieba pytest pytest-asyncio
+
+      - name: 单元测试（离线可跑）
+        run: python -m pytest tests -q
+
+      - name: 微调数据格式校验
+        run: python scripts/validate_finetune.py
+
+      - name: 问法扩充自检
+        run: python scripts/generate_finetune.py --per 1
+
+      - name: 模块导入检查
+        run: python -c "import embroidery_agent.api.server, embroidery_agent.agent.router; print('imports OK')"
+
+  # 需要本地 Ollama（qwen2.5:7b-instruct + bge-m3）的冒烟测试/评测，
+  # 在开发机手动执行：python scripts/smoke_team.py && python scripts/evaluate.py

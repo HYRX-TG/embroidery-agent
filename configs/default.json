@@ -1,0 +1,75 @@
+{
+  "llm": {
+    "base_url": "http://127.0.0.1:11434/v1",
+    "chat_model": "qwen3.5:9b",
+    "embedding_model": "bge-m3",
+    "timeout_seconds": 120
+  },
+  "rerank": {
+    "_comment": "精排可选。实测本黄金集启用后 Top1 命中从 91.1% 降至 84.8%（Top5 仍 100%），默认关闭；如需启用改 use_rerank/enabled 为 true。",
+    "enabled": false,
+    "model_name": "BAAI/bge-reranker-base",
+    "device": "cpu"
+  },
+  "retrieval": {
+    "recall_k": 20,
+    "top_k": 5,
+    "min_score": 0.2,
+    "use_vector": true,
+    "use_bm25": true,
+    "use_rerank": false
+  },
+  "kb": {
+    "public_path": "data/knowledge",
+    "internal_path": "data/internal",
+    "index_path": "data/index",
+    "chunk_size": 300,
+    "chunk_overlap": 40
+  },
+  "storage": {
+    "db_path": "data/embroidery.db"
+  },
+  "channels": {
+    "wechat": {
+      "_comment": "微信公众号/订阅号接入。token 与公众号后台「服务器配置」一致；verify_signature=false 仅限本地联调，生产必须开 true；app_id/app_secret 填写后启用微信客服消息推送，留空则进入本地模式（回复存待推送表）。",
+      "enabled": true,
+      "token": "",
+      "app_id": "",
+      "app_secret": "",
+      "verify_signature": false
+    }
+  },
+  "staff": {
+    "_comment": "员工工作台口令。passcode=明文（开发用，发布仓库时建议留空）；passcode_sha256=口令SHA-256（推荐，生成：python scripts/hash_passcode.py 口令）。生产优先用环境变量 EMBROIDERY_STAFF_PASSCODE 注入。当前哈希对应示例口令，部署时务必换掉。",
+    "passcode": "",
+    "passcode_sha256": ""
+  },
+  "rate_limit": {
+    "enabled": true,
+    "chat_per_minute": 10,
+    "search_per_minute": 30,
+    "_comment": "按 IP 滑动窗口限流（单进程版）；多实例部署需换共享存储。"
+  },
+  "tickets": {
+    "auto_create": true
+  },
+  "team": {
+    "_comment": "多 Agent 团队：enabled 为启用的专家；rag_provider 为外挂知识库提供方（默认向量知识库，目录 data/knowledge + data/team_kb，索引 data/index/team_rag），留空则禁用团队 RAG",
+    "enabled": [
+      "customer_service",
+      "logistics",
+      "quotation",
+      "production",
+      "quality",
+      "analytics"
+    ],
+    "rag_provider": "embroidery_agent.agent.team_rag.VectorRAGProvider",
+    "rag_kb_dirs": [
+      "data/knowledge",
+      "data/team_kb"
+    ],
+    "rag_index_dir": "data/index/team_rag",
+    "rag_min_score": 0.35,
+    "router_temperature": 0.1
+  }
+}

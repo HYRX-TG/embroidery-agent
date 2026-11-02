@@ -1,0 +1,38 @@
+{
+  "_comment": "生产产能与报价参数：业务可直接编辑。hours_per_dm2 为每平方分米绣制工时；margin_low/high 为报价加成区间。",
+  "labor_hourly_rate": 25,
+  "finishing_hours_per_piece": 0.5,
+  "qc_hours_per_piece": 0.3,
+  "work_hours_per_day": 8,
+  "efficiency_factor": 1.3,
+  "margin_low": 0.35,
+  "margin_high": 0.6,
+  "framing_fee": 80,
+  "quantity_discounts": [
+    {"min_quantity": 51, "rate": 0.90},
+    {"min_quantity": 11, "rate": 0.95}
+  ],
+  "crafts": {
+    "hand": {
+      "name": "手工绣",
+      "hours_per_dm2": 6.0,
+      "material_per_dm2": 12,
+      "pattern_setup_hours": 8,
+      "default_workers": 2
+    },
+    "semi": {
+      "name": "半手工绣",
+      "hours_per_dm2": 2.5,
+      "material_per_dm2": 8,
+      "pattern_setup_hours": 4,
+      "default_workers": 3
+    },
+    "machine": {
+      "name": "机绣",
+      "hours_per_dm2": 0.4,
+      "material_per_dm2": 5,
+      "pattern_setup_hours": 2,
+      "default_workers": 2
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "_comment": "物流价格表：业务可直接编辑。zones 为分区，carriers 为承运商；first=首重费(元)，additional=续重(元/kg)，eta_days=参考时效。后期可由外挂 RAG / ERP 接口替代本文件。",
+  "first_weight_kg": 1.0,
+  "dim_divisor": 6000,
+  "zones": ["华南", "华东", "华北", "西南", "西北", "东北"],
+  "carriers": {
+    "shunfeng": {
+      "name": "顺丰速运",
+      "prices": {
+        "华南": {"first": 13, "additional": 2, "eta_days": "1-2天"},
+        "华东": {"first": 15, "additional": 3, "eta_days": "2天"},
+        "华北": {"first": 16, "additional": 4, "eta_days": "2-3天"},
+        "西南": {"first": 16, "additional": 4, "eta_days": "2-3天"},
+        "西北": {"first": 18, "additional": 6, "eta_days": "3-4天"},
+        "东北": {"first": 18, "additional": 6, "eta_days": "3-4天"}
+      }
+    },
+    "debang": {
+      "name": "德邦物流",
+      "prices": {
+        "华南": {"first": 9, "additional": 1.5, "eta_days": "2-3天"},
+        "华东": {"first": 10, "additional": 2, "eta_days": "2-3天"},
+        "华北": {"first": 11, "additional": 2.5, "eta_days": "3天"},
+        "西南": {"first": 12, "additional": 3, "eta_days": "3-4天"},
+        "西北": {"first": 14, "additional": 4, "eta_days": "4-5天"},
+        "东北": {"first": 14, "additional": 4, "eta_days": "4-5天"}
+      }
+    },
+    "yunda": {
+      "name": "韵达快递",
+      "prices": {
+        "华南": {"first": 7, "additional": 1, "eta_days": "2天"},
+        "华东": {"first": 8, "additional": 1.5, "eta_days": "2-3天"},
+        "华北": {"first": 9, "additional": 2, "eta_days": "3天"},
+        "西南": {"first": 10, "additional": 2, "eta_days": "3天"},
+        "西北": {"first": 11, "additional": 3, "eta_days": "4天"},
+        "东北": {"first": 11, "additional": 3, "eta_days": "4天"}
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+.git/
+logs/
+data/index/
+data/*.db
+data/dataset.jsonl
+data/finetune/generated/
+Dockerfile

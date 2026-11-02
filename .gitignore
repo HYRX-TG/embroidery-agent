@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# 运行时产物（索引、数据库、导出数据集均为生成物）
+data/index/
+data/*.db
+data/dataset.jsonl
+data/finetune/generated/
+
+# 日志与本地配置
+logs/
+.env
+.env.local
+backups/
+*.log
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 模型本地缓存
+*.gguf
+data/finetune/candidates.jsonl

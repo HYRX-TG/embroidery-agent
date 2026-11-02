@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>项目回顾</title>
+<style>
+:root {
+  --ink: #2b2118; --ink-soft: #4a3b2c; --gold: #a8865a; --gold-light: #d9c6a3;
+  --gold-pale: #f3e9d6; --bg: #f7f2e9; --card: #fff; --muted: #8a7a66;
+  --code-bg: #f3ede1; --border: #e6dcc9;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Serif SC", Georgia, serif;
+  background: var(--bg); color: var(--ink); margin: 0;
+  line-height: 1.75; font-size: 15.5px;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 40px 32px 80px; }
+.doc {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 44px 52px; box-shadow: 0 4px 24px rgba(43,33,24,0.07);
+}
+.doc h1 {
+  font-size: 28px; color: var(--ink); border-bottom: 2px solid var(--gold);
+  padding-bottom: 14px; margin: 0 0 24px; letter-spacing: 1px;
+}
+.doc h2 {
+  font-size: 21px; color: var(--ink); margin: 36px 0 14px;
+  padding-left: 12px; border-left: 4px solid var(--gold); letter-spacing: 0.5px;
+}
+.doc h3 { font-size: 17px; color: var(--ink-soft); margin: 26px 0 10px; }
+.doc h4 { font-size: 15px; color: var(--muted); margin: 20px 0 8px; }
+.doc p { margin: 10px 0; }
+.doc a { color: var(--gold); text-decoration: none; border-bottom: 1px solid var(--gold-light); }
+.doc a:hover { border-bottom-color: var(--gold); }
+.doc ul, .doc ol { padding-left: 26px; margin: 10px 0; }
+.doc li { margin: 5px 0; }
+.doc code {
+  background: var(--code-bg); color: #8a5a2a; padding: 2px 6px;
+  border-radius: 5px; font-size: 13.5px; font-family: Consolas, Monaco, monospace;
+}
+.doc pre {
+  background: #2b2118; color: #e8dfd0; padding: 16px 20px; border-radius: 10px;
+  overflow-x: auto; font-size: 13.5px; line-height: 1.6;
+}
+.doc pre code { background: none; color: inherit; padding: 0; }
+.doc table {
+  border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px;
+}
+.doc th, .doc td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+.doc th { background: var(--gold-pale); color: var(--ink-soft); font-weight: 600; }
+.doc tr:nth-child(even) td { background: #fdfbf7; }
+.doc blockquote {
+  border-left: 4px solid var(--gold-light); background: #fdfbf7;
+  margin: 14px 0; padding: 10px 18px; color: var(--ink-soft);
+}
+.doc blockquote p { margin: 4px 0; }
+.doc hr { border: none; border-top: 1px dashed var(--border); margin: 30px 0; }
+.doc img { max-width: 100%; border-radius: 8px; }
+.toc { font-size: 14px; }
+@media (max-width: 700px) { .doc { padding: 26px 20px; } .wrap { padding: 20px 12px; } }
+</style>
+</head>
+<body>
+<div class="wrap"><article class="doc">
+<h1>知绣坊项目回顾：功能全景 + 踩坑与解决方案</h1>
+<blockquote>
+<p>用途：隔了很久要重新捡起项目时，先读这一份。
+项目路径：<code>D:\embroidery_agent</code> ｜ 规模：约 6300 行 Python、46 项测试、20 个 API 端点
+状态：门店灰度可用（功能闭环完整），公网生产还差部署与账号体系</p>
+</blockquote>
+<hr />
+<h1>一、这个项目是什么</h1>
+<p><strong>一句话</strong>：给刺绣门店做的<strong>本地离线 AI 客服 + 员工助手</strong>——客户咨询行业知识、自动收集定制需求成工单；员工查工艺、算运费、算报价、排产期、做质检、看经营数据。</p>
+<p><strong>为什么做</strong>：刺绣店有三个死结——① 老师傅经验在脑子里，新客服答不上；② 新人乱报价出过事；③ 报价、成本、客户资料绝对不能上传到在线大模型。所以全链路本地跑（Ollama + FAISS + SQLite），不调用任何外部 API。</p>
+<p><strong>核心设计哲学</strong>（贯穿整个项目）：</p>
+<blockquote>
+<p><strong>LLM 只做它擅长的&quot;理解&quot;和&quot;表达&quot;，所有确定性的事（算钱、权限、兜底）交给代码。</strong></p>
+</blockquote>
+<p>这条原则能解释项目里 80% 的设计决策，也是面试最能讲出深度的地方。</p>
+<hr />
+<h1>二、实现了什么功能（按角色分）</h1>
+<h2>2.1 C 端：客户咨询（网页 / 微信公众号）</h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>状态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>行业知识问答</td>
+<td>✅</td>
+<td>覆盖 25 篇知识：四大名绣、针法、品类、保养、纹样寓意、装裱、婚庆/礼赠/商务场景等；回答带 <code>[编号]</code> 来源</td>
+</tr>
+<tr>
+<td><strong>多轮定制需求收集</strong></td>
+<td>✅</td>
+<td>按固定顺序追问：主题→尺寸→工艺→用途→数量→预算→交付；每轮只问 1 个；被规则/模型自动填上的字段<strong>跳过不问</strong></td>
+</tr>
+<tr>
+<td><strong>客户确认回环</strong></td>
+<td>✅</td>
+<td>六要素齐后表单先给客户过目 → 客户「确认」才转人工建单；客户说修改则更新表单再确认</td>
+</tr>
+<tr>
+<td>需求表单结构</td>
+<td>✅</td>
+<td>9 字段：图案主题/尺寸/工艺类型/数量/用途/预算/交付/特殊要求/核心偏好</td>
+</tr>
+<tr>
+<td><strong>不报价红线</strong></td>
+<td>✅</td>
+<td>客户问价格/工期/库存 → 固定话术转人工 + 自动建工单，<strong>永不报价</strong></td>
+</tr>
+<tr>
+<td>自动工单</td>
+<td>✅</td>
+<td>落 SQLite，附完整对话上下文和需求表单</td>
+</tr>
+<tr>
+<td>意向分级</td>
+<td>✅</td>
+<td>确定性规则打 高/中/低（六要素齐或出现成交信号=高），帮销售排优先级</td>
+</tr>
+<tr>
+<td>投诉安抚</td>
+<td>✅</td>
+<td>独立意图分支，标准化话术</td>
+</tr>
+<tr>
+<td>多轮记忆</td>
+<td>✅</td>
+<td>会话 + 表单进度持久化到 SQLite，断线/重启可续</td>
+</tr>
+<tr>
+<td>微信渠道</td>
+<td>✅ 代码就绪</td>
+<td>webhook 验签、openid↔会话绑定、消息幂等、异步推送（规避微信 5 秒限制）；需配 app_id/secret 才能真正连公众号</td>
+</tr>
+<tr>
+<td>降级可用</td>
+<td>✅</td>
+<td>模型挂了 → 知识库直接引用回答；向量挂了 → 仅 BM25；全挂 → 固定话术</td>
+</tr>
+</tbody>
+</table>
+<h2>2.2 B 端：员工工作台（<code>/team</code>）</h2>
+<p><strong>6 个专家 Agent + 一个团队协调器</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>专家</th>
+<th>能干什么</th>
+<th>关键实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>智能客服</td>
+<td>客户咨询、话术生成</td>
+<td>团队 RAG 检索增强</td>
+</tr>
+<tr>
+<td>物流核算</td>
+<td>运费试算、承运商比选</td>
+<td>确定性运费计算（重量+体积重抛比+分区价格表）</td>
+</tr>
+<tr>
+<td>订单报价</td>
+<td>成本估算、报价区间</td>
+<td>面积×工艺单价×数量+装裱；价格表在 <code>configs/production.json</code>，运营可改</td>
+</tr>
+<tr>
+<td>生产排程</td>
+<td>工序拆解、交期评估</td>
+<td>串并行工序+产能计算</td>
+</tr>
+<tr>
+<td>质检助手</td>
+<td>疵品归因、返工建议</td>
+<td>结构化质检报告</td>
+</tr>
+<tr>
+<td>经营数据</td>
+<td>工单统计问答</td>
+<td>只读 SQL 白名单</td>
+</tr>
+</tbody>
+</table>
+<p><strong>团队机制</strong>：</p>
+<ul>
+<li><strong>两级路由</strong>：正则强信号（&quot;报价/运费/交期&quot;）零延迟直达专家；知识问句才走 LLM JSON 路由（带 LRU 缓存）</li>
+<li><strong>三段式执行</strong>：正则提参 → 缺参才调 LLM（带对话历史，支持&quot;那只要 5 幅呢&quot;）→ 纯函数核算 → LLM 流式解释</li>
+<li><strong>提示词热更新</strong>：<code>prompts/team/*.md</code> 改完即生效，不用重启</li>
+<li><strong>会话持久化</strong>：团队对话落 SQLite，跨轮省略句可接上</li>
+</ul>
+<h2>2.3 系统能力</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>双角色权限</td>
+<td>三层隔离：数据层（检索前按 visibility 过滤，最硬）/ Prompt 层 / 能力层（工具只注册给 B 端）</td>
+</tr>
+<tr>
+<td>员工鉴权</td>
+<td>三档：明文配置（开发）→ SHA-256 哈希（推荐）→ 环境变量（生产）；hmac 常量时间比较</td>
+</tr>
+<tr>
+<td>速率限制</td>
+<td>按 IP 滑动窗口：对话 10/分、检索 30/分</td>
+</tr>
+<tr>
+<td>注入防御</td>
+<td>9 类模式拦截（忽略指令/越狱/套系统提示/套底价）+ system prompt 安全条款 + 审计日志</td>
+</tr>
+<tr>
+<td>知识库自愈</td>
+<td>manifest 记录每个源文件 mtime+size+模型名，变更自动重建索引</td>
+</tr>
+<tr>
+<td>降级告警</td>
+<td>模型缺失/生成失败/向量检索失败均写 WARNING 日志，可诊断</td>
+</tr>
+<tr>
+<td>可观测</td>
+<td><code>/api/v1/metrics</code>（运行时长/请求数/错误数）、<code>/api/v1/status</code>（模型/知识库/索引真实状态）</td>
+</tr>
+<tr>
+<td>数据飞轮</td>
+<td><code>export_conversations.py</code> 把真实对话导出成微调候选（自动过滤固定话术）</td>
+</tr>
+<tr>
+<td>微调管线</td>
+<td>4 类原始数据校验 → 问法扩充 → 导出 LlamaFactory alpaca 格式 → QLoRA</td>
+</tr>
+<tr>
+<td>评测</td>
+<td>146 条黄金集，三维度（检索来源/意图/行为合规）</td>
+</tr>
+<tr>
+<td>部署</td>
+<td>start.ps1 一键启动、install.ps1（NSSM 服务化+每日备份）、Dockerfile、CI</td>
+</tr>
+</tbody>
+</table>
+<h2>2.4 当前量化指标（可复现）</h2>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>知识库</td>
+<td>60 chunks（公开 25 篇 + 内部 2 篇）</td>
+</tr>
+<tr>
+<td>团队外挂库</td>
+<td>NCIFD 698 条 + 原创整理 2 篇</td>
+</tr>
+<tr>
+<td>检索</td>
+<td>Hit@1 <strong>79.4%</strong> / Hit@5 <strong>97.9%</strong> / MRR <strong>0.88</strong></td>
+</tr>
+<tr>
+<td>意图准确率</td>
+<td><strong>96.8%</strong>（4 处边界误判）</td>
+</tr>
+<tr>
+<td>行为合规率</td>
+<td><strong>98.4%</strong>（该转人工的都转了）</td>
+</tr>
+<tr>
+<td>测试</td>
+<td>46 项全过，CI 不依赖模型</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>三、踩过的坑与解决方案（按主题分组）</h1>
+<blockquote>
+<p>这一节是整个项目最值钱的部分——每个坑都是真实跑出来的，都有代码证据。</p>
+</blockquote>
+<h2>A. 多轮对话与状态管理（踩坑最密集的区域）</h2>
+<h3>A1. 用户问什么都被同一句客套话回答</h3>
+<p><strong>现象</strong>：问&quot;你们能做什么&quot;&quot;刺绣难学吗&quot;&quot;客服电话多少&quot;，全都回同一句&quot;您好呀~我是知绣坊的刺绣顾问…&quot;</p>
+<p><strong>根因</strong>：意图分类器兜底返回 <code>SMALL_TALK</code>，而 <code>customer.py</code> 收到闲聊意图<strong>直接返回硬编码话术，根本不过模型</strong>。用户一句&quot;这算什么自主回答&quot;点破了这个问题。</p>
+<p><strong>解法</strong>：兜底一律改成 <code>KNOWLEDGE</code> 走 RAG + 模型；只有真正的短问候（&quot;你好/谢谢/再见&quot;）才用闲聊分支，且模型可用时也优先让模型回。</p>
+<p><strong>经验</strong>：<strong>兜底路径决定系统下限</strong>。兜底返回什么，用户就会大量遇到什么。任何&quot;默认分支&quot;都要按最常见的情况设计，不能当垃圾桶。</p>
+<p>相关代码：<code>nlp/intent.py</code> 末尾、<code>agent/customer.py</code> 的 SMALL_TALK 分支</p>
+<hr />
+<h3>A2. 定制需求回答被当成知识问答吞掉</h3>
+<p><strong>现象</strong>：收集需求时客户答&quot;牡丹题材&quot;、&quot;手工绣&quot;，系统却去检索知识库回答了，需求收集永远推不完。</p>
+<p><strong>根因</strong>：为了支持&quot;收集中途客户顺带问知识问题&quot;，我在 process 入口加了&quot;跑题放行&quot;判断——但用的是<strong>意图分类</strong>。而&quot;牡丹题材&quot;&quot;手工绣&quot;都含工艺实体词，被分类成了 KNOWLEDGE，于是被误判为跑题。</p>
+<p><strong>解法（关键重构）</strong>：跑题判据改成——<strong>先做表单抽取，看本轮有没有新填字段</strong>。</p>
+<ul>
+<li>有新信息 → 客户在回答追问，继续收集</li>
+<li>无新信息 → 才可能是跑题提问，再走意图判断放行</li>
+</ul>
+<p><strong>经验</strong>：判断&quot;用户这句话属于哪条流程&quot;时，<strong>用流程自己的状态变化做判据</strong>，比用语义分类可靠得多。语义分类永远有边界模糊。</p>
+<p>相关代码：<code>agent/customer.py:_handle_requirement</code> 的 <code>new_info</code> 判断</p>
+<hr />
+<h3>A3. 多轮收集时已填的字段莫名丢失</h3>
+<p><strong>现象</strong>：客户答了尺寸，下一轮问工艺后，尺寸变成空了。</p>
+<p><strong>根因</strong>：每轮都把整段对话交给 LLM 做表单抽取，<strong>全量覆盖</strong> <code>session.requirement</code>——模型抽漏或抖动，已确认的信息就被冲掉了。</p>
+<p><strong>解法</strong>：合并策略改为<strong>只填空字段，永不覆盖已有值</strong>。</p>
+<p><strong>经验</strong>：LLM 抽取类任务，默认策略应该是&quot;增量合并&quot;而不是&quot;全量重写&quot;。模型是有抖动的，不能让它的抖动破坏已确认状态。</p>
+<p>相关代码：<code>generation/answer.py:extract_requirement_form</code></p>
+<hr />
+<h3>A4. 表单字段全空，追问清单也找不到</h3>
+<p><strong>现象</strong>：报 <code>ValueError: '图案主题' is not in list</code></p>
+<p><strong>根因</strong>：<code>missing_fields()</code> 返回的是<strong>中文标签</strong>（&quot;图案主题&quot;），而 <code>QUESTION_FLOW</code> 的 key 用的是<strong>字段名</strong>（<code>pattern_theme</code>），两者对不上。</p>
+<p><strong>解法</strong>：<code>QUESTION_FLOW</code> 的 key 统一改成中文标签，并对不在清单里的字段加兜底提问。</p>
+<p><strong>经验</strong>：跨模块传值时，<strong>标识符类型要统一</strong>（要么全用英文 key，要么全用展示标签）。这类 bug 写的时候看不出来，跑起来才炸。</p>
+<hr />
+<h3>A5. 定制数量是必填项，但没有对应的追问话术</h3>
+<p><strong>现象</strong>：其他都填完了，系统问&quot;请问您还有别的信息想补充吗？比如定制数量~&quot;——生硬，而且暴露了兜底逻辑。</p>
+<p><strong>解法</strong>：<code>QUESTION_FLOW</code> 补上数量追问，并让 <code>missing_fields()</code> 的顺序与追问顺序一致。</p>
+<p><strong>经验</strong>：必填字段清单和追问话术清单是两份数据，<strong>必须同源或加一致性测试</strong>，否则一定漂移。</p>
+<hr />
+<h3>A6. 整段流程&quot;看起来&quot;在跑，但字段一直是空的</h3>
+<p><strong>现象</strong>：收集流程走了 7 轮，最后表单全空。</p>
+<p><strong>根因</strong>：<strong>Ollama 服务整个挂了</strong>（11434 拒绝连接），而 <code>extract_requirement_form</code> 在模型不可用时静默 <code>return form</code>——吞了异常，只留下&quot;流程正常&quot;的假象。</p>
+<p><strong>解法</strong>：① 抽取失败/跳过都写 WARNING 日志（<code>form_extraction_skipped reason=llm_not_ready detail=...</code>）；② 引入规则抽取器作为第一优先级，模型挂了也能收集。</p>
+<p><strong>经验</strong>：<strong>静默降级是运维炸弹</strong>。任何 <code>except: pass</code> 都要配一条日志。用户看到&quot;流程在走&quot;，开发者看到&quot;全是空的&quot;，中间只差一条日志。</p>
+<hr />
+<h2>B. 模型与推理接入</h2>
+<h3>B1. 模型被删了，服务显示&quot;就绪&quot;，回答全是降级</h3>
+<p><strong>现象</strong>：<code>/api/v1/status</code> 显示 <code>llm_ready: true</code>，但所有回答都是&quot;知识库直接引用&quot;的粗糙风格。</p>
+<p><strong>根因</strong>：<code>is_ready()</code> 只 ping <code>/v1/models</code> 看 HTTP 200，<strong>不检查目标模型在不在模型列表里</strong>。qwen2.5 被删后，服务照样返回 200。</p>
+<p><strong>解法</strong>：<code>is_ready()</code> 同时校验模型名是否存在；新增 <code>missing_reason()</code> 输出&quot;模型 X 未安装，可用模型：[...]&quot;；每次降级写日志。</p>
+<p><strong>经验</strong>：健康检查要检查<strong>业务可用的那件事</strong>，不是&quot;进程活着&quot;。模型服务 ping 通 ≠ 能推理。</p>
+<p>相关代码：<code>generation/llm.py:is_ready / missing_reason</code></p>
+<hr />
+<h3>B2. 换模型要改代码吗？不用</h3>
+<p><strong>设计</strong>：所有业务代码只面向 <strong>OpenAI 兼容接口</strong>（<code>/v1/chat/completions</code>）编程，模型名在 <code>configs/default.json</code> 一行配置。</p>
+<p><strong>实战验证</strong>：qwen2.5:7b 被删后，改一行 <code>chat_model</code> 切到 <code>qwen3.5:9b</code>，重启即生效，业务零改动。</p>
+<p><strong>代价（要如实知道）</strong>：9B（6.6GB）在 8G 显存里装不满，部分层跑 CPU，热启动后约 <strong>4 字/秒</strong>——一段 200 字回答要 40-50 秒。7B Q4（4.7GB）能全进显存，速度快约一倍。<strong>这是显存换质量的物理权衡，不是配置问题。</strong></p>
+<p><strong>经验</strong>：应用层与推理层解耦的收益在&quot;换模型时&quot;结算。提前花的成本很小（只调 API），收益很大。</p>
+<hr />
+<h3>B3. 构建知识库时模型没启动，直接报错崩掉</h3>
+<p><strong>现象</strong>：<code>build_kb.py</code> 抛 <code>httpx.ConnectError</code></p>
+<p><strong>解法</strong>：embedding 失败 → 降级为仅 BM25，输出 <code>vector_ok: false</code> + warning，不阻断构建。</p>
+<p><strong>经验</strong>：数据构建类脚本要&quot;能降级跑完&quot;，否则换台机器就卡在第一步。</p>
+<hr />
+<h3>B4. reranker 一加载就卡死十分钟</h3>
+<p><strong>现象</strong>：请求 <code>/api/v1/status</code> 卡住不动。</p>
+<p><strong>根因</strong>：首次加载 <code>bge-reranker-base</code> 触发 HuggingFace 在线下载，国内网络超时 + 自动重试 5 次。</p>
+<p><strong>解法</strong>：离线优先——本地 HF 缓存里没有该模型就<strong>直接跳过精排</strong>，绝不触发网络请求；需要时提前手动下载。</p>
+<p><strong>经验</strong>：<strong>离线系统里任何隐式网络请求都是定时炸弹</strong>。第三方库的&quot;自动下载模型&quot;行为要在初始化前拦住。</p>
+<hr />
+<h3>B5. 花力气做的 reranker，实测反而让效果变差</h3>
+<p><strong>做法</strong>：下载 bge-reranker 做两阶段检索（召回 20 → 精排 5）。</p>
+<p><strong>A/B 结果</strong>：黄金集 Top1 命中 <strong>91.1% → 84.8%</strong>（Top5 仍 100%）。</p>
+<p><strong>决策</strong>：<strong>默认关闭</strong>，配置里保留开关并写明实测数据。</p>
+<p><strong>经验</strong>：小规模中文行业库里，精排模型的噪声可能大于信息增益。<strong>功能加完要用数据验收，负收益就敢关掉</strong>——这比&quot;功能越加越多&quot;更能说明工程素养。</p>
+<p>相关代码：<code>configs/default.json:rerank.enabled=false</code> 及注释</p>
+<hr />
+<h2>C. 检索与知识库</h2>
+<h3>C1. 改了知识库，检索还是旧内容</h3>
+<p><strong>根因</strong>：索引是离线构建的产物，文件改了不重建就不生效。</p>
+<p><strong>解法</strong>：manifest 机制——记录每个源文件的 <code>mtime + size</code> 和 embedding 模型名，每次加载时比对，不一致自动重建。</p>
+<p><strong>经验</strong>：<strong>缓存要有失效机制</strong>。手工维护的&quot;记得重建索引&quot;最终一定会忘。</p>
+<p>相关代码：<code>retrieval/pipeline.py:_kb_stale / _manifest</code></p>
+<hr />
+<h3>C2. 中文 session_id 直接 500</h3>
+<p><strong>现象</strong>：传中文 <code>session_id</code> 时请求 500，日志是 <code>UnicodeEncodeError: 'latin-1' codec can't encode</code>。</p>
+<p><strong>根因</strong>：HTTP 响应头只能 latin-1。我把 session_id 放进了 <code>X-Session-Id</code> 响应头。</p>
+<p><strong>解法</strong>：服务端检测非 ASCII 就换成新生成的 ID。</p>
+<p><strong>经验</strong>：<strong>HTTP header 不是兜里</strong>，只放 ASCII。用户可控的值要过滤后再进 header。</p>
+<hr />
+<h3>C3. 评测脚本读 JSONL 报 &quot;Extra data&quot;</h3>
+<p><strong>根因</strong>：黄金集是 JSONL（每行一个对象），脚本用 <code>json.loads</code> 读整个文件。</p>
+<p><strong>解法</strong>：按行解析。</p>
+<p><strong>附带问题</strong>：多轮对话数据集是<strong>跨行 JSON</strong>（不是严格 JSONL），逐行解析必炸。解法是按大括号配对切块解析。</p>
+<p><strong>经验</strong>：JSONL 和&quot;多个 JSON 拼在一起&quot;是两种格式，<strong>解析器要能区分</strong>。</p>
+<hr />
+<h2>D. 安全与权限</h2>
+<h3>D1. 客户能看到系统内部信息</h3>
+<p><strong>现象</strong>：前端右侧栏暴露了模型名、知识库块数、工单列表——客户也看得到。</p>
+<p><strong>解法（双层）</strong>：</p>
+<ul>
+<li><strong>前端</strong>：客户视图根本不渲染侧栏（视图隔离）</li>
+<li><strong>后端</strong>：<code>/status</code>、<code>/tickets</code>、<code>/staff/chat</code>、<code>/search?role=staff</code>、工具直调等内部端点全部要求员工口令（防绕过前端直接调 API）</li>
+</ul>
+<p><strong>经验</strong>：前端隐藏 ≠ 权限控制。<strong>所有权限必须有服务端校验</strong>，前端只是体验。</p>
+<hr />
+<h3>D2. 员工口令明文存在配置文件里</h3>
+<p><strong>解法</strong>：三档（明文 → SHA-256 哈希 → 环境变量），发布 GitHub 前把明文清空只留哈希。</p>
+<p><strong>经验</strong>：发布开源仓库前跑一遍 <code>git diff | grep</code> 查密钥，这是固定动作。</p>
+<hr />
+<h3>D3. 一个脚本就能打满 7B 模型</h3>
+<p><strong>解法</strong>：进程内滑动窗口限流（按 IP + 桶）。</p>
+<p><strong>局限（要诚实）</strong>：单进程版，多实例部署需换 Redis 之类的共享存储。</p>
+<hr />
+<h3>D4. 客户可能诱导模型泄露内部信息</h3>
+<p><strong>解法</strong>：双层——规则层 <code>guard.py</code> 拦截 9 类模式（忽略指令/越狱/套系统提示/套底价），命中即礼貌拒绝 + 审计日志；prompt 层写&quot;安全防线最高优先级&quot;条款。</p>
+<p><strong>经验</strong>：<strong>prompt 是软约束，不能当唯一防线</strong>。能用代码判定的，就不要交给 prompt。</p>
+<hr />
+<h2>E. 前端交互</h2>
+<h3>E1. 回车键不能发送</h3>
+<p><strong>根因</strong>：<code>&lt;textarea&gt;</code> 的回车默认是换行，不触发表单提交。</p>
+<p><strong>解法</strong>：监听 <code>keydown</code>，Enter 且非 Shift 时 preventDefault + 发送；Shift+Enter 保留换行。</p>
+<hr />
+<h3>E2. 打开页面 404</h3>
+<p><strong>根因</strong>：<code>server.py</code> 里漏了静态文件挂载。</p>
+<p><strong>解法</strong>：补 <code>StaticFiles</code> 挂载 + 根路由返回 index.html。</p>
+<hr />
+<h2>F. 数据与外包决策</h2>
+<h3>F1. 想找刺绣开源数据集，反复确认：不存在</h3>
+<p><strong>搜索结论</strong>：GitHub 上刺绣相关仓库全是<strong>制图软件</strong>（inkstitch、pyembroidery、Embroidermodder），没有任何知识文本数据集；维基百科/百度百科在当前网络下超时或 403。</p>
+<p><strong>最终方案</strong>：NCIFD 民族文化开源数据集（698 条工艺问答，关键词过滤）+ 本仓库原创整理的纹样民俗百科、行业经营常识，每份都在 <code>SOURCES.md</code> 声明来源和许可。</p>
+<p><strong>经验</strong>：垂直行业往往没有现成数据。<strong>&quot;没有数据&quot;本身是竞争壁垒</strong>——你整理的私有知识库就是资产。同时要养成数据溯源习惯。</p>
+<hr />
+<h1>四、验证方式（想快速确认它还活着）</h1>
+<pre><code class="language-powershell">cd D:\embroidery_agent
+$env:PYTHONPATH = &quot;src&quot;
+
+# 1. 测试（46 项，不需要模型）
+python -m pytest -q
+
+# 2. 服务
+.\start.ps1                       # 或 uvicorn embroidery_agent.api.server:app --port 8000
+
+# 3. 健康 + 状态（员工口令）
+curl http://127.0.0.1:8000/health
+curl -H &quot;X-Staff-Access: zhixiu2026&quot; http://127.0.0.1:8000/api/v1/status
+
+# 4. 评测基线
+python scripts/evaluate.py
+</code></pre>
+<p><strong>页面</strong>：<code>http://127.0.0.1:8000/</code>（客户）｜<code>http://127.0.0.1:8000/team</code>（团队工作台）
+<strong>员工口令</strong>：<code>zhixiu2026</code>（配置里存的是哈希，改口令用 <code>scripts/hash_passcode.py</code>）</p>
+<hr />
+<h1>五、还没做的（生产化差距，按重要度）</h1>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>缺口</th>
+<th>影响</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>无 HTTPS / 无进程守护</td>
+<td>只能内网用，窗口关了服务就停</td>
+<td>Nginx 反代 + NSSM（install.ps1 已含服务注册）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>工单只能看不能改状态</td>
+<td>员工无法在界面推进&quot;待处理→已报价→已确认&quot;</td>
+<td>补 <code>PATCH /api/v1/tickets/{id}</code> + 前端按钮</td>
+</tr>
+<tr>
+<td>3</td>
+<td>C 端无身份认证</td>
+<td>拿到 session_id 就能读历史</td>
+<td>公网部署前加手机号/轻量登录</td>
+</tr>
+<tr>
+<td>4</td>
+<td>微信渠道没真接线</td>
+<td>代码就绪，缺 app_id/secret</td>
+<td>配公众号后台即可</td>
+</tr>
+<tr>
+<td>5</td>
+<td>没做并发压测</td>
+<td>9B 单请求 4 字/秒，两客并发就排队</td>
+<td>实测后决定是否回 7B 或加队列</td>
+</tr>
+<tr>
+<td>6</td>
+<td>微调数据只有 15 条</td>
+<td>训不出行业话术</td>
+<td>用数据飞轮攒到 500-1000 条再 QLoRA</td>
+</tr>
+<tr>
+<td>7</td>
+<td>对话数据无保留期限</td>
+<td>合规隐患</td>
+<td>加定期清理任务</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>六、文件地图（捡项目时从哪看起）</h1>
+<pre><code>D:\embroidery_agent\
+├── configs/default.json         ★ 唯一配置入口（模型/检索/口令/限流/团队）
+├── data/knowledge/              公开知识库 25 篇
+├── data/internal/               内部库（仅员工）
+├── data/team_kb/                团队外挂库（SOURCES.md 声明来源）
+├── data/golden_test.jsonl       146 条评测集
+├── src/embroidery_agent/
+│   ├── agent/customer.py        ★ C端核心：多轮状态机 + 确认回环
+│   ├── agent/team.py            ★ 多Agent路由
+│   ├── agent/experts.py         ★ 6专家（三段式执行）
+│   ├── agent/business_tools.py  ★ 确定性计算器（LLM 不做算术）
+│   ├── agent/rag.py             ★ 外挂知识库协议（换库零改码）
+│   ├── retrieval/pipeline.py    ★ 混合检索 + 权限过滤 + 索引自愈
+│   ├── generation/answer.py     ★ 规则优先抽取 + 三级降级
+│   ├── api/server.py            全部端点 + 鉴权 + 限流
+│   └── web/                     前端（客户页 + 团队工作台）
+├── scripts/                     12 个运维/数据脚本
+├── tests/                       46 项测试
+└── docs/
+    ├── 使用手册.md              运维操作
+    ├── 设计与实现详解.md        ★ 业务落地视角 + 逐文件讲解
+    ├── 面试讲解.md              三档介绍词 + 踩坑故事 + 高频问答
+    └── 项目回顾.md              ★ 本文档
+</code></pre>
+<hr />
+<p><em>最后更新：客户端确认回环 + 规则优先抽取上线后</em></p>
+
+</article></div>
+</body>
+</html>
